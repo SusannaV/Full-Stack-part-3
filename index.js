@@ -55,16 +55,37 @@ let persons = [
   })
 
   app.use(express.json()) 
+
+  const findDoubles = (props) => {
+        const namelist = [...persons.map(n => n.name)]
+        if (namelist.includes(props)){
+            return true;
+        } else {
+            return false
+        }
+    
+  }
+
   app.post('/api/persons', (request, response) => {
     const body = request.body
-    console.log('req body', body)
-  
-    if (!body) {
-      return response.status(400).json({ 
-        error: 'content missing' 
-      })
-    }
-  
+
+    if (!body.name || !body.number) {
+        console.log('there was something missing')
+        return response.status(400).json({ 
+          error: 'content missing' 
+        })
+      }
+
+
+      if (findDoubles(body.name)) {
+        console.log('name already exists')
+        return response.status(400).json({ 
+          error: 'name must be unique' 
+        })
+      }
+
+      console.log('req body', body)
+
     const person = {
       name: body.name,
       number: body.number,
