@@ -54,6 +54,26 @@ let persons = [
       response.status(204).end()
   })
 
+  app.use(express.json()) 
+  app.post('/api/persons', (request, response) => {
+    const body = request.body
+    console.log('req body', body)
+  
+    if (!body) {
+      return response.status(400).json({ 
+        error: 'content missing' 
+      })
+    }
+  
+    const person = {
+      name: body.name,
+      number: body.number,
+      id: Math.floor(Math.random()*(10000-1)+1)
+    }
+    persons = persons.concat(person)
+    response.json(person)
+  })
+
 const port = 3001
 app.listen(port)
 console.log(`Server running on port ${port}`)
