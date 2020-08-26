@@ -55,8 +55,11 @@ let persons = [
       response.status(204).end()
   })
 
+  morgan.token("bodytoken", function getBody(req){return JSON.stringify(req.body)} )
+
+
   app.use(express.json()) 
-  app.use(morgan('tiny'))
+  app.use(morgan(':method :url :status :res[content-length] - :response-time ms :bodytoken'))
 
   const findDoubles = (props) => {
         const namelist = [...persons.map(n => n.name)]
@@ -86,8 +89,6 @@ let persons = [
         })
       }
 
-      console.log('req body', body)
-
     const person = {
       name: body.name,
       number: body.number,
@@ -95,6 +96,7 @@ let persons = [
     }
     persons = persons.concat(person)
     response.json(person)
+    
   })
 
 const port = 3001
