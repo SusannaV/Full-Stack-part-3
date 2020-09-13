@@ -1,11 +1,14 @@
+require('dotenv').config()
 const express = require('express')
 const morgan = require('morgan')
 const app = express()
 const cors = require('cors')
+const Person = require('./models/person')
 
 
 app.use(cors())
 app.use(express.static('build'))
+
 let persons = [
     {
         "name": "Arto Hellas",
@@ -33,31 +36,39 @@ let persons = [
     res.send('<h1>Hello World!</h1>')
   })
   
-  app.get('/api/persons', (req, res) => {
-    res.json(persons)
+  app.get('/api/persons', (request, response) => {
+    Person.find({}).then(persons => {
+      response.json(persons.map(dude => dude.toJSON()))
+    })
   })
 
-  app.get('/info', (req, res) => {
-    res.send('<div><p>Phonebook has info for ' + persons.length +  ' people</p><p>' + new Date() + '</p></div>')
-  })
+  // app.get('/info', (req, res) => {
+  //   res.send('<div><p>Phonebook has info for ' + persons.length +  ' people</p><p>' + new Date() + '</p></div>')
+  // })
 
-  app.get('/api/persons/:id', (request, response) => {
-    const id = Number(request.params.id)
-    const person = persons.find(person => person.id === id)
+  // app.get('/api/persons/:id', (request, response) => {
+  //   const id = Number(request.params.id)
+  //   const person = persons.find(person => person.id === id)
     
-    if (person) {
-      response.json(person)
-    } else {
-      response.status(404).end()
-    }
+  //   if (person) {
+  //     response.json(person)
+  //   } else {
+  //     response.status(404).end()
+  //   }
+  // })
+  
+  app.get('/api/persons/:id', (request, response) => {
+    Person.findById(request.params.id).then(dude => {
+      response.json(dude.toJSON())
+    })
   })
 
-  app.delete('/api/persons/:id', (request, response) =>{
-      const id = Number(request.params.id)
-      persons = persons.filter(person => person.id !== id)
+  // app.delete('/api/persons/:id', (request, response) =>{
+  //     const id = Number(request.params.id)
+  //     persons = persons.filter(person => person.id !== id)
 
-      response.status(204).end()
-  })
+  //     response.status(204).end()
+  // })
 
   morgan.token("bodytoken", function getBody(req){return JSON.stringify(req.body)} )
 
@@ -75,32 +86,53 @@ let persons = [
     
   }
 
+  // app.post('/api/persons', (request, response) => {
+  //   const body = request.body
+
+  //   if (!body.name || !body.number) {
+  //       console.log('there was something missing')
+  //       return response.status(400).json({ 
+  //         error: 'content missing' 
+  //       })
+  //     }
+
+
+  //     if (findDoubles(body.name)) {
+  //       console.log('name already exists')
+  //       return response.status(400).json({ 
+  //         error: 'name must be unique' 
+  //       })
+  //     }
+
+  //   const person = {
+  //     name: body.name,
+  //     number: body.number,
+  //     id: Math.floor(Math.random()*(10000-1)+1)
+  //   }
+  //   persons = persons.concat(person)
+  //   response.json(person)
+    
+  // })
+
   app.post('/api/persons', (request, response) => {
     const body = request.body
-
+    console.log(body)
+  
     if (!body.name || !body.number) {
-        console.log('there was something missing')
-        return response.status(400).json({ 
-          error: 'content missing' 
-        })
-      }
-
-
-      if (findDoubles(body.name)) {
-        console.log('name already exists')
-        return response.status(400).json({ 
-          error: 'name must be unique' 
-        })
-      }
-
-    const person = {
-      name: body.name,
-      number: body.number,
-      id: Math.floor(Math.random()*(10000-1)+1)
+      return response.status(400).json({ error: 'content missing' })
     }
-    persons = persons.concat(person)
-    response.json(person)
-    
+  
+    console.log('made it this far')
+    const person = new Person({
+      name: body.name,
+      number: body.number
+      //id: Math.floor(Math.random()*(10000-1)+1)
+    })
+    console.log(person)
+  
+    person.save().then(savedPerson => {
+      response.json(savedPerson.toJSON())
+    })
   })
 
   const PORT = process.env.PORT || 3001
