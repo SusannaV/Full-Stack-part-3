@@ -20,31 +20,17 @@ app.use(express.static('build'))
   //   res.send('<div><p>Phonebook has info for ' + persons.length +  ' people</p><p>' + new Date() + '</p></div>')
   // })
 
-  // app.get('/api/persons/:id', (request, response) => {
-  //   const id = Number(request.params.id)
-  //   const person = persons.find(person => person.id === id)
-    
-  //   if (person) {
-  //     response.json(person)
-  //   } else {
-  //     response.status(404).end()
-  //   }
-  // })
-  
-  app.get('/api/persons/:id', (request, response) => {
+  app.get('/api/persons/:id', (request, response, next) => {
     Person.findById(request.params.id).then(dude => {
-      console.log('Here you go!')
-      response.json(dude.toJSON())
+      if(dude){
+        console.log('Here you go!')
+        response.json(dude.toJSON())
+      } else {
+        response.status(404).end()
+      }
     })
+    .catch(error => next(error))
   })
-
-  // app.delete('/api/persons/:id', (request, response) =>{
-  //     const id = Number(request.params.id)
-  //     persons = persons.filter(person => person.id !== id)
-
-  //     response.status(204).end()
-  // })
-
 
 
   morgan.token("bodytoken", function getBody(req){return JSON.stringify(req.body)} )
