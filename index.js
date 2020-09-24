@@ -8,36 +8,10 @@ const Person = require('./models/person')
 
 app.use(cors())
 app.use(express.static('build'))
-
-let persons = [
-    {
-        "name": "Arto Hellas",
-        "number": "040-123456",
-        "id": 1
-      },
-      {
-        "name": "Ada Lovelace",
-        "number": "39-44-5323523",
-        "id": 2
-      },
-      {
-        "name": "Dan Abramov",
-        "number": "12-43-234345",
-        "id": 3
-      },
-      {
-        "name": "Mary Poppendieck",
-        "number": "39-23-6423122",
-        "id": 4
-      }
-  ]
-
-  app.get('/', (req, res) => {
-    res.send('<h1>Hello World!</h1>')
-  })
   
   app.get('/api/persons', (request, response) => {
     Person.find({}).then(persons => {
+      console.log('Sending all dudes your way!')
       response.json(persons.map(dude => dude.toJSON()))
     })
   })
@@ -59,6 +33,7 @@ let persons = [
   
   app.get('/api/persons/:id', (request, response) => {
     Person.findById(request.params.id).then(dude => {
+      console.log('Here you go!')
       response.json(dude.toJSON())
     })
   })
@@ -69,6 +44,8 @@ let persons = [
 
   //     response.status(204).end()
   // })
+
+
 
   morgan.token("bodytoken", function getBody(req){return JSON.stringify(req.body)} )
 
@@ -135,7 +112,56 @@ let persons = [
     })
   })
 
+  app.delete('/api/persons/:id', (request, response, next) => {
+    Person.findByIdAndRemove(request.params.id)
+      .then(result => {
+        response.status(204).end()
+      })
+      .catch(error => next(error))
+  })
+
+  const unknownEndpoint = (request, response) => {
+    response.status(404).send({ error: 'unknown endpoint' })
+  }
+  app.use(unknownEndpoint)
+
+  const errorHandler = (error, request, response, next) => {
+    console.error(error.message)
+  
+    if (error.name === 'CastError') {
+      return response.status(400).send({ error: 'You seem to have made a cast error' })
+    }
+  
+    next(error)
+  }
+  
+  app.use(errorHandler)
+
+
   const PORT = process.env.PORT || 3001
   app.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`)
   })
+
+  // let persons = [
+//     {
+//         "name": "Arto Hellas",
+//         "number": "040-123456",
+//         "id": 1
+//       },
+//       {
+//         "name": "Ada Lovelace",
+//         "number": "39-44-5323523",
+//         "id": 2
+//       },
+//       {
+//         "name": "Dan Abramov",
+//         "number": "12-43-234345",
+//         "id": 3
+//       },
+//       {
+//         "name": "Mary Poppendieck",
+//         "number": "39-23-6423122",
+//         "id": 4
+//       }
+//   ]
