@@ -5,6 +5,7 @@ const app = express()
 const cors = require('cors')
 const Person = require('./models/person')
 
+//käynnistä komennolla npm run dev
 
 app.use(cors())
 app.use(express.static('build'))
@@ -39,43 +40,10 @@ app.use(express.static('build'))
   app.use(express.json()) 
   app.use(morgan(':method :url :status :res[content-length] - :response-time ms :bodytoken'))
 
-  const findDoubles = (props) => {
-        const namelist = [...persons.map(n => n.name)]
-        if (namelist.includes(props)){
-            return true;
-        } else {
-            return false
-        }
-    
-  }
+  const findDoubles = (props) => 
+    Person.find({name: props}).id
 
-  // app.post('/api/persons', (request, response) => {
-  //   const body = request.body
-
-  //   if (!body.name || !body.number) {
-  //       console.log('there was something missing')
-  //       return response.status(400).json({ 
-  //         error: 'content missing' 
-  //       })
-  //     }
-
-
-  //     if (findDoubles(body.name)) {
-  //       console.log('name already exists')
-  //       return response.status(400).json({ 
-  //         error: 'name must be unique' 
-  //       })
-  //     }
-
-  //   const person = {
-  //     name: body.name,
-  //     number: body.number,
-  //     id: Math.floor(Math.random()*(10000-1)+1)
-  //   }
-  //   persons = persons.concat(person)
-  //   response.json(person)
-    
-  // })
+  
 
   app.post('/api/persons', (request, response) => {
     const body = request.body
@@ -84,19 +52,52 @@ app.use(express.static('build'))
     if (!body.name || !body.number) {
       return response.status(400).json({ error: 'content missing' })
     }
-  
-    console.log('made it this far')
-    const person = new Person({
-      name: body.name,
-      number: body.number
-      //id: Math.floor(Math.random()*(10000-1)+1)
+
+    const foundId = Person.find({name: body.name})
+    .then(person =>{
+      console.log('foundId', foundId) //tää palauttaa pending promisen
+    if(foundId){
+      console.log('found double')
+      app.put(`api/persons/:${foundId.id}`, (request, response, next) => poster(request, response, next))
+    } else {
+      console.log('posting new')
+      const person = new Person({
+        name: body.name,
+        number: body.number
+        //id: Math.floor(Math.random()*(10000-1)+1)
+      })
+      console.log(person)
+    
+      person.save().then(savedPerson => {
+        response.json(savedPerson.toJSON())
+      })
+    }
     })
-    console.log(person)
-  
-    person.save().then(savedPerson => {
-      response.json(savedPerson.toJSON())
-    })
+    
+    
   })
+
+
+  app.put('/api/persons/:id', (request, response, next) => poster(request, response, next)
+  )
+
+
+  var poster = (request, response, next) => {
+    console.log('I am a poster')
+    const body = request.body
+
+    const person = {
+      name: body.name,
+      number: body.number,
+    }
+
+    Person.findByIdAndUpdate(request.params.id, person, {new: true})
+      .then(updatedPerson =>{
+        response.json(updatedPerson)
+      })
+      .catch(error => next(error))
+  }
+
 
   app.delete('/api/persons/:id', (request, response, next) => {
     Person.findByIdAndRemove(request.params.id)
@@ -151,3 +152,31 @@ app.use(express.static('build'))
 //         "id": 4
 //       }
 //   ]
+
+  // app.post('/api/persons', (request, response) => {
+  //   const body = request.body
+
+  //   if (!body.name || !body.number) {
+  //       console.log('there was something missing')
+  //       return response.status(400).json({ 
+  //         error: 'content missing' 
+  //       })
+  //     }
+
+
+  //     if (findDoubles(body.name)) {
+  //       console.log('name already exists')
+  //       return response.status(400).json({ 
+  //         error: 'name must be unique' 
+  //       })
+  //     }
+
+  //   const person = {
+  //     name: body.name,
+  //     number: body.number,
+  //     id: Math.floor(Math.random()*(10000-1)+1)
+  //   }
+  //   persons = persons.concat(person)
+  //   response.json(person)
+    
+  // })

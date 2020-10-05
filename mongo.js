@@ -1,12 +1,11 @@
 const mongoose = require('mongoose')
 
-  
   const password = process.argv[2]
   
   const url =
     
      `mongodb+srv://fullstackuser:${password}@puhelinluettelocluster.vg2su.mongodb.net/puhelinluettelo?retryWrites=true&w=majority`
-  mongoose.connect(url, { useNewUrlParser: true, useUnifiedTopology: true })
+  mongoose.connect(url, { useNewUrlParser: true, useUnifiedTopology: true, useFindAndModify: false, useCreateIndex: true })
   
   const personSchema = new mongoose.Schema({
     name: String,
