@@ -17,14 +17,16 @@ app.use(express.static('build'))
     })
   })
 
-  // app.get('/info', (req, res) => {
-  //   res.send('<div><p>Phonebook has info for ' + persons.length +  ' people</p><p>' + new Date() + '</p></div>')
-  // })
+   app.get('/info', async (request, response) => {
+    const numberOfDudes = await Person.countDocuments({})
+          response.send
+          (`<div><p>Phonebook has info for ${numberOfDudes} people.</p><p>${new Date()}</p></div>`)
+    }
+ )
 
   app.get('/api/persons/:id', (request, response, next) => {
     Person.findById(request.params.id).then(dude => {
       if(dude){
-        console.log('Here you go!')
         response.json(dude.toJSON())
       } else {
         response.status(404).end()
@@ -40,11 +42,6 @@ app.use(express.static('build'))
   app.use(express.json()) 
   app.use(morgan(':method :url :status :res[content-length] - :response-time ms :bodytoken'))
 
-  // const findDoubles = (props) => 
-  //   Person.find({name: props}).id
-
-  
-
   app.post('/api/persons', (request, response) => {
     const body = request.body
     console.log(body)
@@ -52,28 +49,17 @@ app.use(express.static('build'))
     if (!body.name || !body.number) {
       return response.status(400).json({ error: 'content missing' })
     }
-
-    // const foundId = Person.find({name: body.name})
-    // .then(person =>{
-    //   console.log('foundId', foundId) //tää palauttaa pending promisen
-    // if(foundId){
-    //   console.log('found double')
-    //   app.put(`api/persons/:${foundId.id}`, (request, response, next) => poster(request, response, next))
-    // } else {
-      console.log('posting new')
       const person = new Person({
         name: body.name,
         number: body.number
-        //id: Math.floor(Math.random()*(10000-1)+1)
       })
       console.log(person)
     
       person.save().then(savedPerson => {
         response.json(savedPerson.toJSON())
       })
-    
-    //})
   })
+
 
 
   app.put('/api/persons/:id', (request, response, next) =>{
@@ -102,6 +88,7 @@ app.use(express.static('build'))
       })
       .catch(error => next(error))
   })
+
 
   const unknownEndpoint = (request, response) => {
     response.status(404).send({ error: 'unknown endpoint' })
