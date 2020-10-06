@@ -40,8 +40,8 @@ app.use(express.static('build'))
   app.use(express.json()) 
   app.use(morgan(':method :url :status :res[content-length] - :response-time ms :bodytoken'))
 
-  const findDoubles = (props) => 
-    Person.find({name: props}).id
+  // const findDoubles = (props) => 
+  //   Person.find({name: props}).id
 
   
 
@@ -53,13 +53,13 @@ app.use(express.static('build'))
       return response.status(400).json({ error: 'content missing' })
     }
 
-    const foundId = Person.find({name: body.name})
-    .then(person =>{
-      console.log('foundId', foundId) //tää palauttaa pending promisen
-    if(foundId){
-      console.log('found double')
-      app.put(`api/persons/:${foundId.id}`, (request, response, next) => poster(request, response, next))
-    } else {
+    // const foundId = Person.find({name: body.name})
+    // .then(person =>{
+    //   console.log('foundId', foundId) //tää palauttaa pending promisen
+    // if(foundId){
+    //   console.log('found double')
+    //   app.put(`api/persons/:${foundId.id}`, (request, response, next) => poster(request, response, next))
+    // } else {
       console.log('posting new')
       const person = new Person({
         name: body.name,
@@ -71,19 +71,12 @@ app.use(express.static('build'))
       person.save().then(savedPerson => {
         response.json(savedPerson.toJSON())
       })
-    }
-    })
     
-    
+    //})
   })
 
 
-  app.put('/api/persons/:id', (request, response, next) => poster(request, response, next)
-  )
-
-
-  var poster = (request, response, next) => {
-    console.log('I am a poster')
+  app.put('/api/persons/:id', (request, response, next) =>{
     const body = request.body
 
     const person = {
@@ -96,7 +89,10 @@ app.use(express.static('build'))
         response.json(updatedPerson)
       })
       .catch(error => next(error))
-  }
+    }
+  )
+
+
 
 
   app.delete('/api/persons/:id', (request, response, next) => {
