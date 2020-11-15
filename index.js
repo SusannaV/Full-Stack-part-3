@@ -6,6 +6,9 @@ const cors = require('cors')
 const Person = require('./models/person')
 
 //käynnistä komennolla npm run dev
+//Heroku päivitetään komennolla npm run deploy:full JA SE TULEE AJAA JOSSAIN MUUALLA
+//KUIN VSC:N TERMINAALISSA!
+//Herokun nimi on Boiling River  (https://boiling-river-75884.herokuapp.com/)
 
 app.use(cors())
 app.use(express.static('build'))
@@ -42,7 +45,7 @@ app.use(express.static('build'))
   app.use(express.json()) 
   app.use(morgan(':method :url :status :res[content-length] - :response-time ms :bodytoken'))
 
-  app.post('/api/persons', (request, response) => {
+  app.post('/api/persons', (request, response, next) => {
     const body = request.body
     console.log(body)
   
@@ -55,9 +58,12 @@ app.use(express.static('build'))
       })
       console.log(person)
     
-      person.save().then(savedPerson => {
-        response.json(savedPerson.toJSON())
+      person.save()
+      .then(savedPerson => savedPerson.toJSON())
+      .then (savedAndFormattedPerson => {
+        response.json(savedAndFormattedPerson)
       })
+      .catch(error => next(error))
   })
 
 
@@ -100,6 +106,8 @@ app.use(express.static('build'))
   
     if (error.name === 'CastError') {
       return response.status(400).send({ error: 'You seem to have made a cast error' })
+    } else if (error.name === 'ValidationError') {
+      return response.status(400).json({ error: error.message })
     }
   
     next(error)
